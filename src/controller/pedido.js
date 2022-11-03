@@ -6,7 +6,7 @@ const auth = require("../middlewares/auth");
 const router = Router();
 
 // auth é um middleware que verifica se o usuário está logado
-router.use((req, res, next) => {
+router.post((req, res, next) => {
   auth(req, res, next);
 });
 
@@ -68,7 +68,7 @@ router.post("/", (req, res) => {
               "updated_at",
               "campus",
             ],
-            [result.requester_id, null, 'Aberto', result.name, result.category_id, result.building_id, result.description, result.localization, time.toISOString(), time.toISOString, result.campus]
+            [result.requester_id, null, 'Aberto', result.name, result.category_id, result.building_id, result.description, result.localization, time.toISOString(), time.toISOString(), result.campus_id]
           ).then((result) => {
             res.status(200).json(result);
           }).catch((err) => {
