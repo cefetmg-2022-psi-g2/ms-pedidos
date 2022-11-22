@@ -3,6 +3,8 @@ const axios = require("axios").default;
 module.exports = (req, res, next) => {
     axios.post(process.env.MS_AUTH_URL, { "token": req.body.token }).then((result) => {
         if (result.data.valid) {
+            req.body.user = result.data.data;
+            req.body.user.id += "";
             next();
         } else {
             console.log(result);
@@ -14,6 +16,7 @@ module.exports = (req, res, next) => {
         }else if (err.response.status == 400 || err.response.status == 401) {
             res.status(401).send("Unauthorized or Invalid Token");
         }else{
+            console.log(err);
             res.status(500).send("Internal Server Error");
         }
     });
