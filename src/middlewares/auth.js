@@ -7,16 +7,14 @@ module.exports = (req, res, next) => {
             req.body.user.id += "";
             next();
         } else {
-            console.log(result);
             res.status(401).send("Unauthorized");
         }
-    }).catch((err) => {	
+    }).catch((err) => {
         if(err.code == 'ECONNREFUSED'){
             res.status(502).send("Bad Gateway");
         }else if (err.response.status == 400 || err.response.status == 401) {
             res.status(401).send("Unauthorized or Invalid Token");
         }else{
-            console.log(err);
             res.status(500).send("Internal Server Error");
         }
     });

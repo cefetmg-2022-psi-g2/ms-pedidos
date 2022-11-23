@@ -9,7 +9,7 @@ const router = Router();
 
 // auth é um middleware que verifica se o usuário está logado
 router.use((req, res, next) => {
-  if (req.method == "POST" || req.originalUrl == "/pedidos/active") {
+  if (req.method == "POST" || req.originalUrl.includes("/pedidos/active")) {
     auth(req, res, next);
   } else {
     next();
@@ -84,11 +84,8 @@ router.post("/", (req, res) => {
       campus
     )
       .then((result) => {
-        console.log(result);
         if (result != false) {
-          console.log(result);
           let time = new Date();
-          console.log("id:" + result.requester_id);
           dbHelper
             .insertInto(
               "pedido",
@@ -145,7 +142,6 @@ router.get("/", (req, res,next) => {
     .getAllLines("pedido")
     .then(async(result) => {
       result = result.filter(pedido => pedido.state=="Aberto");
-      console.log(result)
       for await (const [index, pedido] of result.entries()){
         try{
           if(pedido.requester_id && pedido.requester_id>0){
@@ -175,15 +171,17 @@ router.get("/active", (req, res) => {
     dbHelper
       .selectWhere(
         "pedido",
-        `(requester_id=${user.id} OR supplier_id=${user.id}) AND (state='Aberto' OR state='Em Andamento')`
+        `supplier_id=${user.id} AND (state='Aberto' OR state='Em Andamento')`
       )
       .then((result) => {
-        console.log(result);
+        result = result.filter(pedido =>pedido.state !="Fechado");
         res.status(200).json(result);
       })
       .catch((err) => {
         res.status(500).send("Internal Server Error");
       });
+  }else{
+    res.status(500).send();
   }
 });
 
