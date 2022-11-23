@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
             console.log(result);
             res.status(401).send("Unauthorized");
         }
-    }).catch((err) => {
+    }).catch((err) => {	
         if(err.code == 'ECONNREFUSED'){
             res.status(502).send("Bad Gateway");
         }else if (err.response.status == 400 || err.response.status == 401) {

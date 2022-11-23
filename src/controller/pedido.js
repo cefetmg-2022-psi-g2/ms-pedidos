@@ -3,7 +3,7 @@ const dbHelper = require("framework");
 const Pedido = require("../model/pedido");
 const auth = require("../middlewares/auth");
 const validator = require("validator");
-const { default: axios } = require("axios");
+const axios = require("axios");
 
 const router = Router();
 

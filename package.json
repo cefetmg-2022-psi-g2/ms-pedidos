@@ -12,10 +12,12 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
+    "dotenv": "^16.0.3",
     "dotenv-safe": "^8.2.0",
     "express": "^4.18.1",
     "express-validator": "^6.14.2",
     "framework": "file:../ms-framework",
+    "pm2": "^5.2.2",
     "validator": "^13.7.0"
   },
   "devDependencies": {
