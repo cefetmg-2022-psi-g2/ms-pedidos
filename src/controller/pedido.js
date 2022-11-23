@@ -3,6 +3,7 @@ const dbHelper = require("framework");
 const Pedido = require("../model/pedido");
 const auth = require("../middlewares/auth");
 const validator = require("validator");
+const axios = require("axios");
 
 const router = Router();
 
@@ -23,10 +24,34 @@ router.get("/:id", (req, res, next) => {
     dbHelper
       .selectWhere("pedido", `id=${id}`)
       .then((result) => {
-        res.status(200).json(result);
+        //Populate new array with user info
+        if(result.lenght != 0){
+          let join = [];
+        result.forEach(pedido => {
+          axios.get("http://164.92.92.152:4000/auth/"+pedido.requester_id).then(result=>{
+            if(result.status==200){
+              delete pedido.requester_id;
+            pedido.requester = result.data;
+            join.push({pedido});
+            res.status(200).json(pedido);
+            }else{
+              res.status(502).send("bad gateway")
+            }
+          }).catch(err=>{
+            if(err.code=='ERR_BAD_REQUEST'){
+              res.status(502).send("Bad Gateway");
+            }else{
+              res.status(500).send("Internal Server Error");
+            }
+          })
+        });
+        }else{
+          res.status(404).send("not found")
+        }
       })
       .catch((err) => {
         res.status(500).send("Internal Server Error");
+        console.log(err)
       });
   }
 });
@@ -119,6 +144,7 @@ router.get("/", (req, res) => {
   dbHelper
     .getAllLines("pedido")
     .then((result) => {
+      result = result.filter(pedido => pedido.state=="Aberto");
       res.status(200).json(result);
     })
     .catch((err) => {
