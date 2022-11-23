@@ -29,5 +29,4 @@ app.get('/', (req, res) => {
     });
 })
 
-
 app.listen(port, () => console.log(`MS-pedidos restarted on: ${port}, DB_PATH: ${dbPath}`));

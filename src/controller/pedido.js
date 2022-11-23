@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const { Router, response } = require("express");
 const dbHelper = require("framework");
 const Pedido = require("../model/pedido");
 const auth = require("../middlewares/auth");
@@ -24,37 +24,34 @@ router.get("/:id", (req, res, next) => {
   } else {
     dbHelper
       .selectWhere("pedido", `id=${id}`)
-      .then((result) => {
-        //Populate new array with user info
-        if(result.lenght != 0){
-          let join = [];
-        result.forEach(pedido => {
-          axios.get("http://164.92.92.152:4000/auth/"+pedido.requester_id).then(result=>{
-            if(result.status==200){
-              delete pedido.requester_id;
-            pedido.requester = result.data;
-            join.push({pedido});
-            res.status(200).json(pedido);
+      .then(async(result) => {
+        if(result.length > 0){
+          result = result[0];
+          if(result.requester_id && result.requester_id>0){
+            response1 = await axios.get(process.env.MS_AUTH_URL+"/"+result.requester_id);
+            if(response1.status==200){
+              delete result.requester_id;
+              result.requester = response1.data;
             }else{
-              res.status(502).send("bad gateway")
+              res.status(502).send("bad gateway");
             }
-          }).catch(err=>{
-            if(err.code=='ERR_BAD_REQUEST'){
-              res.status(502).send("Bad Gateway");
+          }
+          if(result.supplier_id && result.supplier_id != 'null' && result.supplier_id>0){
+            response2 = await axios.get(process.env.MS_AUTH_URL+"/"+result.supplier_id);
+            if(response2.status==200){
+              delete result.supplier_id;
+              result.supplier = response2.data;
             }else{
-              res.status(500).send("Internal Server Error");
+              res.status(502).send("bad gateway");
             }
-          })
-        });
+          }
+          res.json(result);
         }else{
-          res.status(404).send("not found")
-        }
-      })
-      .catch((err) => {
-        res.status(500).send("Internal Server Error");
-        console.log(err)
-      });
-  }
+          res.status(404).send("Not Found");
+        }}).catch(err=>{
+          next(err)
+        })}
+        
 });
 
 // Insere um pedido
@@ -143,14 +140,31 @@ router.post("/", (req, res) => {
 });
 
 // Pega todos os pedidos
-router.get("/", (req, res) => {
+router.get("/", (req, res,next) => {
   dbHelper
     .getAllLines("pedido")
-    .then((result) => {
-      res.json(result);
+    .then(async(result) => {
+      result = result.filter(pedido => pedido.state=="Aberto");
+      console.log(result)
+      for await (const [index, pedido] of result.entries()){
+        try{
+          if(pedido.requester_id && pedido.requester_id>0){
+            response1 = await axios.get(process.env.MS_AUTH_URL+"/"+pedido.requester_id);
+            if(response1.status==200){
+              delete result[index].requester_id;
+              result[index].requester = response1.data;
+            }else{
+              res.status(502).send("bad gateway");
+            }
+          }
+        }catch(err){
+          next(err);
+        }
+      }
+      res.status(200).json(result);
     })
     .catch((err) => {
-      res.status(500).send("Internal Server Error");
+      next(err);
     });
 });
 
